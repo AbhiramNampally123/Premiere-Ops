@@ -1,9 +1,11 @@
-# [Project name]
+# CPU Doctor Agent
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Dependency-free Linux diagnostics that inspect CPU pressure, load, memory, uptime, and top processes.
 
 ## Run & Operate
 
+- `python3 cpu_doctor_agent.py` — run a human-readable health scan
+- `python3 cpu_doctor_agent.py --json` — emit a machine-readable report
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
@@ -22,23 +24,27 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `cpu_doctor_agent.py` — the runnable diagnostics agent
+- `README.md` — usage and automation notes
+- `artifacts/api-server` — shared API server scaffold
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first version uses Python's standard library only, so it can run immediately without dependency installation.
+- Linux `/proc` is treated as the source of truth for CPU, memory, uptime, and process metrics.
+- Missing or transient procfs values are reported as unavailable instead of being replaced with guessed data.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+The agent produces a one-shot health report with thresholds, actionable findings, and an exit code suitable for shell automation.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+_None recorded._
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The diagnostics script targets Linux and depends on `/proc`; it is not intended for native macOS or Windows execution without a platform adapter.
 
 ## Pointers
 
