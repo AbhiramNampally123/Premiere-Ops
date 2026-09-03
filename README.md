@@ -36,3 +36,14 @@ The command exits with:
 The script currently targets Linux because it relies on `/proc`. If a
 `/proc` metric is unavailable, the report says `unavailable` rather than
 silently inventing a value.
+
+## Grafana Gemini Agent
+
+The repository also includes an isolated Python CLI for grounded, read-only
+questions about live Grafana metrics. It discovers query tools from a Grafana
+MCP server and lets Gemini request bounded follow-up reads; it never changes
+Grafana state.
+
+See [`grafana_gemini_agent/README.md`](grafana_gemini_agent/README.md) for
+installation, environment variables, transport setup, examples, and the
+credential-free test command. The existing CPU Doctor script is unchanged.

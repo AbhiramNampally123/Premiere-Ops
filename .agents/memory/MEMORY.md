@@ -1,0 +1,1 @@
+- [MCP HTTP transport compatibility](mcp-http-transport.md) — support both header-based and injected-client streamable HTTP APIs across MCP releases.

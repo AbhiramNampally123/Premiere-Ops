@@ -26,6 +26,7 @@ Dependency-free Linux diagnostics that inspect CPU pressure, load, memory, uptim
 
 - `cpu_doctor_agent.py` — the runnable diagnostics agent
 - `README.md` — usage and automation notes
+- `grafana_gemini_agent/` — standalone Grafana MCP + Gemini read-only CLI
 - `artifacts/api-server` — shared API server scaffold
 
 ## Architecture decisions
@@ -33,10 +34,16 @@ Dependency-free Linux diagnostics that inspect CPU pressure, load, memory, uptim
 - The first version uses Python's standard library only, so it can run immediately without dependency installation.
 - Linux `/proc` is treated as the source of truth for CPU, memory, uptime, and process metrics.
 - Missing or transient procfs values are reported as unavailable instead of being replaced with guessed data.
+- Grafana questions use only MCP tools discovered as read/query operations; mutation tools are excluded before Gemini sees them.
 
 ## Product
 
 The agent produces a one-shot health report with thresholds, actionable findings, and an exit code suitable for shell automation.
+
+The Grafana Gemini Agent is a separate Python application. Install its
+dependencies from `grafana_gemini_agent/requirements.txt`, configure its
+environment variables, and run `python3 -m grafana_gemini_agent`; its test suite
+uses fakes and does not require live credentials.
 
 ## User preferences
 

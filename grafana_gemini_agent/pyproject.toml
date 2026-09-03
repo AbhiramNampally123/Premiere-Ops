@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grafana-gemini-agent"
+version = "0.1.0"
+description = "A grounded, read-only Grafana MCP question-answering CLI powered by Gemini"
+requires-python = ">=3.11"
+dependencies = [
+  "mcp>=1.8.0,<3",
+  "google-genai>=1.20.0,<3",
+]
+
+[project.scripts]
+grafana-gemini-agent = "grafana_gemini_agent.cli:main"
+
+[tool.setuptools]
+packages = ["grafana_gemini_agent"]
