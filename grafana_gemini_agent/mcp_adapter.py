@@ -7,6 +7,7 @@ import contextlib
 import inspect
 import json
 import re
+import sys
 from dataclasses import dataclass
 from typing import Any, Awaitable
 
@@ -74,11 +75,15 @@ class GrafanaMcpAdapter:
         self._connected = session is not None
 
     async def __aenter__(self) -> GrafanaMcpAdapter:
-        if self._session is None:
-            await self._open_session()
-        await self._run("initialize", self._session.initialize())
-        self._connected = True
-        return self
+        try:
+            if self._session is None:
+                await self._open_session()
+            await self._run("initialize", self._session.initialize())
+            self._connected = True
+            return self
+        except BaseException:
+            await self.__aexit__(*sys.exc_info())
+            raise
 
     async def __aexit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
         self._connected = False
@@ -146,7 +151,16 @@ class GrafanaMcpAdapter:
                 raise DependencyError(
                     "The installed MCP client exposes an unsupported streamable HTTP API."
                 )
-            read_stream, write_stream, _ = await self._stack.enter_async_context(transport)
+            transport_streams = await self._stack.enter_async_context(transport)
+            if len(transport_streams) == 2:
+                read_stream, write_stream = transport_streams
+            elif len(transport_streams) == 3:
+                # Older MCP clients include an additional session identifier.
+                read_stream, write_stream, _ = transport_streams
+            else:
+                raise DependencyError(
+                    "The installed MCP client returned an unsupported streamable HTTP shape."
+                )
 
         self._session = ClientSession(read_stream, write_stream)
         await self._stack.enter_async_context(self._session)
