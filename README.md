@@ -1,10 +1,25 @@
 # CPU Doctor Agent
 
-CPU Doctor Agent is a dependency-free Linux diagnostic script that gives a
-quick health snapshot of a machine. It reads the Linux `/proc` interface
-directly, so it does not need `psutil` or any other package.
+CPU Doctor Agent is a Grafana observability agent powered by Gemini. It queries
+live Grafana data through MCP, then uses Gemini to explain the observations in
+plain English. A separate dependency-free local diagnostics script is also
+included for offline machine checks.
 
 ## Run it
+
+Configure the Grafana MCP endpoint and run the primary agent:
+
+```bash
+export GRAFANA_MCP_TRANSPORT=streamable-http
+export GRAFANA_MCP_URL="https://your-grafana.example.com/api/mcp"
+python3 main.py --question "Is CPU utilization elevated over the last hour?"
+```
+
+`GEMINI_API_KEY` is read from the Replit Secret with that name. The agent
+discovers Grafana's available tools at runtime and only exposes read/query
+tools to Gemini.
+
+For a local-only machine snapshot, run the secondary script:
 
 ```bash
 python3 cpu_doctor_agent.py
@@ -21,7 +36,13 @@ The scan reports:
 
 ## Automation
 
-Use JSON for monitoring or another agent:
+Use the Grafana agent interactively:
+
+```bash
+python3 main.py
+```
+
+The local script also supports JSON for monitoring:
 
 ```bash
 python3 cpu_doctor_agent.py --json --interval 1 --top 10
@@ -39,10 +60,10 @@ silently inventing a value.
 
 ## Grafana Gemini Agent
 
-The repository also includes an isolated Python CLI for grounded, read-only
-questions about live Grafana metrics. It discovers query tools from a Grafana
-MCP server and lets Gemini request bounded follow-up reads; it never changes
-Grafana state.
+The `grafana_gemini_agent/` package is the primary application path. It uses
+the official Python MCP client to connect to Grafana over Streamable HTTP, SSE,
+or stdio, and the official Google Gemini SDK for analysis. It never creates,
+edits, or deletes Grafana state.
 
 See [`grafana_gemini_agent/README.md`](grafana_gemini_agent/README.md) for
 installation, environment variables, transport setup, examples, and the

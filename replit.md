@@ -1,11 +1,13 @@
 # CPU Doctor Agent
 
-Dependency-free Linux diagnostics that inspect CPU pressure, load, memory, uptime, and top processes.
+Grafana observability agent that queries live Grafana data through MCP and uses Gemini to analyze it; local `/proc` diagnostics remain available as a secondary script.
 
 ## Run & Operate
 
-- `python3 cpu_doctor_agent.py` — run a human-readable health scan
-- `python3 cpu_doctor_agent.py --json` — emit a machine-readable report
+- `python3 main.py` — run the primary Grafana MCP + Gemini agent
+- `python3 main.py --question "Is CPU utilization elevated?"` — ask one Grafana question
+- `python3 cpu_doctor_agent.py` — run the secondary local-only health scan
+- `python3 cpu_doctor_agent.py --json` — emit a machine-readable local report
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
@@ -25,13 +27,14 @@ Dependency-free Linux diagnostics that inspect CPU pressure, load, memory, uptim
 ## Where things live
 
 - `cpu_doctor_agent.py` — the runnable diagnostics agent
+- `main.py` — project entrypoint for the Grafana/Gemini path
 - `README.md` — usage and automation notes
 - `grafana_gemini_agent/` — standalone Grafana MCP + Gemini read-only CLI
 - `artifacts/api-server` — shared API server scaffold
 
 ## Architecture decisions
 
-- The first version uses Python's standard library only, so it can run immediately without dependency installation.
+- The primary agent uses the official Python MCP and Google Gemini SDKs.
 - Linux `/proc` is treated as the source of truth for CPU, memory, uptime, and process metrics.
 - Missing or transient procfs values are reported as unavailable instead of being replaced with guessed data.
 - Grafana questions use only MCP tools discovered as read/query operations; mutation tools are excluded before Gemini sees them.
@@ -40,10 +43,9 @@ Dependency-free Linux diagnostics that inspect CPU pressure, load, memory, uptim
 
 The agent produces a one-shot health report with thresholds, actionable findings, and an exit code suitable for shell automation.
 
-The Grafana Gemini Agent is a separate Python application. Install its
-dependencies from `grafana_gemini_agent/requirements.txt`, configure its
-environment variables, and run `python3 -m grafana_gemini_agent`; its test suite
-uses fakes and does not require live credentials.
+The Grafana Gemini Agent is the primary Python application. Configure
+`GRAFANA_MCP_URL` (or the stdio transport variables) and run `python3 main.py`;
+its test suite uses fakes and does not require live credentials.
 
 ## User preferences
 
@@ -52,6 +54,7 @@ _None recorded._
 ## Gotchas
 
 - The diagnostics script targets Linux and depends on `/proc`; it is not intended for native macOS or Windows execution without a platform adapter.
+- The Grafana MCP URL must be configured before the primary agent can connect; it does not silently fall back to local data.
 
 ## Pointers
 

@@ -82,6 +82,11 @@ class AgentTests(unittest.TestCase):
             )
         self.assertNotIn("do-not-print", str(context.exception))
 
+    def test_grafana_token_becomes_bearer_header(self) -> None:
+        config = AgentConfig.from_env(config_env(GRAFANA_TOKEN="grafana-secret"))
+        self.assertEqual(config.mcp_headers, {"Authorization": "Bearer grafana-secret"})
+        self.assertNotIn("grafana-secret", repr(config))
+
     def test_discovery_filters_mutations_and_calls_read_tool(self) -> None:
         session = FakeMcpSession(
             [

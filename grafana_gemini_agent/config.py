@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Mapping
 from urllib.parse import urlparse
 
@@ -16,13 +16,13 @@ _TRANSPORTS = {"streamable-http", "sse", "stdio"}
 
 @dataclass(frozen=True)
 class AgentConfig:
-    gemini_api_key: str
+    gemini_api_key: str = field(repr=False)
     gemini_model: str
     mcp_transport: str
     mcp_url: str | None
     mcp_command: str | None
     mcp_args: tuple[str, ...]
-    mcp_headers: dict[str, str]
+    mcp_headers: dict[str, str] = field(repr=False)
     mcp_timeout_seconds: float
     gemini_timeout_seconds: float
     max_tool_rounds: int
@@ -58,6 +58,9 @@ class AgentConfig:
 
         args = _parse_string_list(values.get("GRAFANA_MCP_ARGS_JSON", "[]"), "GRAFANA_MCP_ARGS_JSON")
         headers = _parse_headers(values.get("GRAFANA_MCP_HEADERS_JSON", "{}"))
+        grafana_token = values.get("GRAFANA_TOKEN", "").strip()
+        if grafana_token and "Authorization" not in headers:
+            headers["Authorization"] = f"Bearer {grafana_token}"
 
         return cls(
             gemini_api_key=api_key,

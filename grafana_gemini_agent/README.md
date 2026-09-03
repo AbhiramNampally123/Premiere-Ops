@@ -29,6 +29,7 @@ secret manager; the CLI never prints their values.
 | `GRAFANA_MCP_COMMAND` | stdio | MCP server executable; passed directly, never through a shell |
 | `GRAFANA_MCP_ARGS_JSON` | no | JSON string array of stdio arguments; default `[]` |
 | `GRAFANA_MCP_HEADERS_JSON` | no | JSON string object of HTTP headers; default `{}` |
+| `GRAFANA_TOKEN` | no | Optional Grafana API token; used as a Bearer token when no Authorization header is supplied |
 | `GEMINI_MODEL` | no | Gemini model; default `gemini-2.5-flash` |
 | `GRAFANA_MCP_TIMEOUT_SECONDS` | no | Per-session/discovery/tool timeout, 1–120; default `20` |
 | `GEMINI_TIMEOUT_SECONDS` | no | Per-model-request timeout, 1–180; default `45` |
