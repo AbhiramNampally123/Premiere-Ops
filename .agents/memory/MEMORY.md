@@ -1,1 +1,2 @@
 - [MCP HTTP transport compatibility](mcp-http-transport.md) — support both header-based and injected-client streamable HTTP APIs across MCP releases.
+- [Grafana Gemini runtime compatibility](grafana-gemini-runtime.md) — hosted Grafana Cloud MCP uses OAuth; service-token deployments should use the official stdio server.

@@ -233,9 +233,11 @@ def _tool_content(parts: list[Any]) -> Any:
     try:
         from google.genai import types
 
-        return types.Content(role="tool", parts=parts)
+        # Gemini's current API accepts function responses in a user turn;
+        # the legacy "tool" role is rejected by newer models.
+        return types.Content(role="user", parts=parts)
     except ImportError:
-        return {"role": "tool", "parts": parts}
+        return {"role": "user", "parts": parts}
 
 
 def _quote(value: str) -> str:

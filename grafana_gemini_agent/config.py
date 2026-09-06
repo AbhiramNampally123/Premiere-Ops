@@ -23,6 +23,7 @@ class AgentConfig:
     mcp_command: str | None
     mcp_args: tuple[str, ...]
     mcp_headers: dict[str, str] = field(repr=False)
+    mcp_env: dict[str, str] = field(repr=False)
     mcp_timeout_seconds: float
     gemini_timeout_seconds: float
     max_tool_rounds: int
@@ -61,15 +62,19 @@ class AgentConfig:
         grafana_token = values.get("GRAFANA_TOKEN", "").strip()
         if grafana_token and "Authorization" not in headers:
             headers["Authorization"] = f"Bearer {grafana_token}"
+        mcp_env = dict(values) if transport == "stdio" else {}
+        if transport == "stdio" and grafana_token:
+            mcp_env["GRAFANA_SERVICE_ACCOUNT_TOKEN"] = grafana_token
 
         return cls(
             gemini_api_key=api_key,
-            gemini_model=_get_string(values, "GEMINI_MODEL", "gemini-2.5-flash"),
+            gemini_model=_get_string(values, "GEMINI_MODEL", "gemini-3.6-flash"),
             mcp_transport=transport,
             mcp_url=url,
             mcp_command=command,
             mcp_args=tuple(args),
             mcp_headers=headers,
+            mcp_env=mcp_env,
             mcp_timeout_seconds=_get_float(
                 values, "GRAFANA_MCP_TIMEOUT_SECONDS", 20.0, minimum=1.0, maximum=120.0
             ),

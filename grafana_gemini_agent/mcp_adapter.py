@@ -105,6 +105,7 @@ class GrafanaMcpAdapter:
             params = StdioServerParameters(
                 command=self.config.mcp_command or "",
                 args=list(self.config.mcp_args),
+                env=self.config.mcp_env,
             )
             read_stream, write_stream = await self._stack.enter_async_context(stdio_client(params))
         elif self.config.mcp_transport == "sse":

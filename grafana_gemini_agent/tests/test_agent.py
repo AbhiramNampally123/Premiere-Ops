@@ -12,7 +12,7 @@ from grafana_gemini_agent.errors import (
     ToolLoopLimitError,
     UnsupportedQuestionError,
 )
-from grafana_gemini_agent.gemini_agent import GeminiReasoningAgent
+from grafana_gemini_agent.gemini_agent import GeminiReasoningAgent, _tool_content
 from grafana_gemini_agent.mcp_adapter import GrafanaMcpAdapter, normalize_result
 
 
@@ -86,6 +86,21 @@ class AgentTests(unittest.TestCase):
         config = AgentConfig.from_env(config_env(GRAFANA_TOKEN="grafana-secret"))
         self.assertEqual(config.mcp_headers, {"Authorization": "Bearer grafana-secret"})
         self.assertNotIn("grafana-secret", repr(config))
+
+    def test_stdio_config_passes_grafana_credentials_to_mcp_server(self) -> None:
+        config = AgentConfig.from_env(
+            {
+                "GEMINI_API_KEY": "test-only-key",
+                "GRAFANA_MCP_TRANSPORT": "stdio",
+                "GRAFANA_MCP_COMMAND": "uvx",
+                "GRAFANA_URL": "https://grafana.example.test",
+                "GRAFANA_TOKEN": "grafana-secret",
+            }
+        )
+        self.assertEqual(config.mcp_env["GRAFANA_URL"], "https://grafana.example.test")
+        self.assertEqual(
+            config.mcp_env["GRAFANA_SERVICE_ACCOUNT_TOKEN"], "grafana-secret"
+        )
 
     def test_discovery_filters_mutations_and_calls_read_tool(self) -> None:
         session = FakeMcpSession(
@@ -196,6 +211,13 @@ class AgentTests(unittest.TestCase):
         self.assertEqual(answer.tools_used, ("query_prometheus",))
         self.assertEqual(len(gemini.requests), 2)
         self.assertEqual(session.calls[0][0], "query_prometheus")
+
+    def test_function_responses_use_gemini_supported_role(self) -> None:
+        content = _tool_content([])
+        role = getattr(content, "role", None)
+        if role is None and isinstance(content, dict):
+            role = content.get("role")
+        self.assertEqual(role, "user")
 
     def test_tool_loop_limit_is_enforced(self) -> None:
         session = FakeMcpSession(
